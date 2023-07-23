@@ -60,6 +60,10 @@ spec:
           value: "1000"
         - name: TZ
           value: Etc/UTC
+        ports:
+        - containerPort: 7396
+          name: http
+          protocol: TCP
         volumeMounts:
         - name: config
           mountPath: /config

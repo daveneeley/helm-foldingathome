@@ -8,11 +8,10 @@ foldingathome:
   config:
     gpu: false
     passkey: ''
+    allow: "0.0.0.0/0"
+    web-allow: "0.0.0.0/0"
     power: "full"
     smp: "true"
-    team: "38188"
-    user: "CERN_Cloud"
-  nodeSelector: {}
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
@@ -31,6 +30,13 @@ foldingathome:
     limits:
       cpu: 1
       memory: "2048Mi"
+
+service:
+  enabled: true
+  ingressClassName: nginx
+  labelName: my.app/hostname
+  labelValue: folding
+  hostName: folding.example.com
 
 # Horizontal pod auto scaler configuration. The goal is to backfill the
 # cluster with folding@home workloads, so we use an hpa resource with a very high
