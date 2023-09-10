@@ -1,15 +1,29 @@
 # Helm Folding@Home
 
-A Helm Chart to deploy workloads for [Folding@Home](https://foldingathome.org/).
+A Helm Chart to deploy workloads for [Folding@Home][FAH].
 
 You can set a fixed number of replicas or enable the horizontal pod autoscaler
 which will fill unused resources in your cluster with pods executing workloads
-from [Folding@Home](https://foldingathome.org/).
+from [Folding@Home][FAH].
 
 These workloads have low priority and are pre-emptible, meaning your main
 workloads will have priority and can take over when you scale up.
 
 ![Monitoring](monit.png "Monitoring")
+
+## Customizations from upstream
+
+This fork uses the [linuxserver.io/foldingathome][lsio] container which is actively maintained.
+
+It also provides `kind: statefulset` support. The [FAH][FAH] docs state the following about Work Units (WU):
+
+> Donors should not delete/dump a WU for any reason other than mentioned [in the policy documentation][rules-policies]. Deleting WUs disrupts the project since it takes longer for WUs to pass their deadline, get reassigned, and finally completed.
+
+Kubernetes workloads are ephemeral by default. It stands to reason that an unbounded, dynamically scaling deployment of FAH containers would be detrimental to project schedules. If a pod has no permanent storage and is rescheduled to a different node, the new pod would start from scratch and the old work unit would be lost.
+
+FAH [deducts points][points] (or stops awarding [bonus points][bonus-points]?) for expired work units through something called the "QRB".
+
+For the slow (but steady) folder a statefulset deployment with some reasonable bounds makes a lot more sense.
 
 ## Deployment
 
@@ -96,3 +110,14 @@ kubectl -n foldingathome logs foldingathome-6c945c5d89-xpsbc -f
 ## Development
 
 Feel free to open issues or submit merge requests.
+
+## Donate
+
+Besides folding with your spare compute cycles, you may also consider [donating to the Folding@Home project][donate] to encourage enhancements to the core clients.
+
+[FAH]: https://foldingathome.org/
+[lsio]: https://docs.linuxserver.io/images/docker-foldingathome
+[donate]: https://foldingathome.org/donate/?lng=en-US
+[points]: https://foldingathome.org/support/faq/stats-teams-usernames/?lng=en-US
+[points-bonus]: https://apps.foldingathome.org/bonus
+[rules-policies]: https://foldingathome.org/support/faq/rules-policies/?lng=en-US

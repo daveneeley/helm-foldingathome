@@ -8,13 +8,13 @@ globalDefault: {{ .default | default false }}
 ---
 {{- end }}
 apiVersion: apps/v1
-kind: Deployment
+kind: {{ .Values.foldingathome.kind | default "Deployment" }}
 metadata:
   name: {{ .Release.Name }}
   labels:
     app: {{ .Release.Name }}
 spec:
-  replicas: {{ .Values.foldingathome.replicas }}
+  replicas: {{ .Values.foldingathome.replicas | default 1 }}
   selector:
     matchLabels:
       app: {{ .Release.Name }}
@@ -33,7 +33,7 @@ spec:
       initContainers:
       - name: setup
         image: busybox
-        command: ["/bin/sh", "-c", "cp /etc/fahclient/config.xml /config"]
+        command: ["/bin/sh", "-c", "if [[ ! -f /config/config.xml ]]; then cp /etc/fahclient/config.xml /config; fi"]
         env:
         - name: PUID
           value: "1000"
@@ -75,7 +75,19 @@ spec:
       - name: foldingathome
         configMap:
           name: cm-{{ .Release.Name }}
+{{- if eq (.Values.foldingathome.kind | default "Deployment") "Deployment" }}
       - name: config
+{{- end }}
+{{- if eq (.Values.foldingathome.kind | default "Deployment") "StatefulSet" }}
+  volumeClaimTemplates:
+  - metadata:
+      name: config
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 256Mi
+{{- end }}
 ---
 {{- if .Values.hpa.enabled }}
 kind: HorizontalPodAutoscaler
@@ -85,7 +97,7 @@ metadata:
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
-    kind: Deployment
+    kind: {{ .Values.foldingathome.kind | default "Deployment" }}
     name: {{ .Release.Name }}
   minReplicas: {{ .Values.hpa.minReplicas }}
   maxReplicas: {{ .Values.hpa.maxReplicas }}

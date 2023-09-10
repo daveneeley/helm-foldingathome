@@ -5,6 +5,7 @@
 # enable/disable gpus, smp, etc.
 foldingathome:
   image: lscr.io/linuxserver/foldingathome
+  kind: StatefulSet
   config:
     gpu: false
     passkey: ''
