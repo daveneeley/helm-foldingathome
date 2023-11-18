@@ -1,6 +1,6 @@
 # The Folding@Home project values, you might want to overwrite user and team.
 #
-# It relies on the docker image by https://github.com/richarvey/FoldingAtHome.
+# It relies on the docker image by https://docs.linuxserver.io/images/docker-foldingathome/
 # If you have your own user or team, override the values below. You can also
 # enable/disable gpus, smp, etc.
 foldingathome:
@@ -9,8 +9,8 @@ foldingathome:
   config:
     gpu: false
     passkey: ''
-    allow: "0.0.0.0/0"
-    web-allow: "0.0.0.0/0"
+    allow: "127.0.0.1 192.168.1.0/24 10.42.0.0/16"
+    web-allow: "127.0.0.1 192.168.1.0/24 10.42.0.0/16"
     power: "full"
     smp: "true"
   affinity:
@@ -22,15 +22,18 @@ foldingathome:
               operator: NotIn
               values:
                 - arm
+                - arm64
+            - key: node-role.kubernetes.io/control-plane
+              operator: DoesNotExist
   priorityClassName: vlow-priority
-  replicas: 1
+  replicas: 4
   resources:
     requests:
       cpu: 1
       memory: "1048Mi"
     limits:
-      cpu: 1
-      memory: "2048Mi"
+      cpu: 4
+      memory: "2560Mi"
 
 service:
   enabled: true
@@ -46,9 +49,9 @@ service:
 # vlow-priority should be set to < -10, so that the cluster auto-scaler does
 # not take them into account.
 hpa:
-  enabled: true
+  enabled: false
   minReplicas: 1
-  maxReplicas: 10000000
+  maxReplicas: 5
   targetCPU: 90
 
 # A set of predefined priorities for your cluster.

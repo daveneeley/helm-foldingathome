@@ -22,6 +22,9 @@ spec:
     metadata:
       labels:
         app: {{ .Release.Name }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9659"
     spec:
       securityContext:
         runAsUser: 0
@@ -50,9 +53,6 @@ spec:
       containers:
       - name: foldingathome
         image: {{ .Values.foldingathome.image }}
-        # FAHClient renames the given config to update with the slots, we need
-        # to have an actual file not the configmap being passed to it.
-        # command: ["/bin/bash", "-c", "mkdir -p /etc/fahclient; cp /config.xml /etc/fahclient/config.xml && FAHClient --web-allow=0/0:7396 --allow=0/0:7396 --config /etc/fahclient/config.xml"]
         env:
         - name: PUID
           value: "1000"
@@ -64,17 +64,39 @@ spec:
         - containerPort: 7396
           name: http
           protocol: TCP
+        - containerPort: 9659
+          name: prometheus
+          protocol: TCP
         volumeMounts:
         - name: config
           mountPath: /config
+        - name: init
+          mountPath: /custom-cont-init.d
+        - name: services
+          mountPath: /custom-services.d
         resources:
 {{ toYaml .Values.foldingathome.resources | indent 10 }}
       affinity:
 {{ toYaml .Values.foldingathome.affinity | indent 8 }}
       volumes:
+      - name: init
+        configMap:
+          name: cm-{{ .Release.Name }}
+          items:
+            - key: download-exporter.sh
+              path: download-exporter.sh
+      - name: services
+        configMap:
+          name: cm-{{ .Release.Name }}
+          items:
+            - key: fah-exporter
+              path: fah-exporter
       - name: foldingathome
         configMap:
           name: cm-{{ .Release.Name }}
+          items:
+            - key: config.xml
+              path: config.xml
 {{- if eq (.Values.foldingathome.kind | default "Deployment") "Deployment" }}
       - name: config
 {{- end }}
@@ -108,4 +130,5 @@ spec:
       target:
         type: Utilization
         averageUtilization: {{ .Values.hpa.targetCPU }}
+---
 {{- end }}

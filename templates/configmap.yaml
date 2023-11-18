@@ -3,10 +3,9 @@ kind: ConfigMap
 metadata:
   name: cm-{{ .Release.Name }}
   labels:
-    app.kubernetes.io/name: foldingathome
-    helm.sh/chart: foldingathome
+    app.kubernetes.io/name: {{ .Release.Name }}
     app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/managed-by: Helm
 data:
   config.xml:
     <config>
@@ -17,3 +16,10 @@ data:
       <slot id='{{ $key }}' type='{{ $value }}'/>
       {{ end }}
     </config>
+  download-exporter.sh: |
+    mkdir -p /opt
+    curl -L --output /opt/fah-exporter "https://github.com/daveneeley/fah-exporter/releases/download/v0.1.0-alpha/fah-exporter-$(uname -s | tr [:upper:] [:lower:])-$(dpkg --print-architecture)"
+    chmod u+x /opt/fah-exporter
+  fah-exporter: |
+    #!/command/execlineb -P
+    /opt/fah-exporter
