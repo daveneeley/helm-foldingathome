@@ -38,9 +38,9 @@ foldingathome:
 service:
   enabled: true
   ingressClassName: nginx
-  labelName: my.app/hostname
-  labelValue: folding
   hostName: folding.example.com
+  annotations: {}
+    # my.app/hostname: folding.example.com
 
 # Horizontal pod auto scaler configuration. The goal is to backfill the
 # cluster with folding@home workloads, so we use an hpa resource with a very high
